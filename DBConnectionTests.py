@@ -45,9 +45,9 @@ class DBConnectionTests(unittest.TestCase):
             ''', (1, '2013-08-24', 'Tournament of Champions Game 1', 1, 2, 3, 1, 3400, 1400, 1200))
 
         cls.dbcon.cursor.execute('''
-            INSERT INTO questions (game_id, value, round, category, clue, response, correct_contestant)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
-            ''', (1, 400, 'Jeopardy', 'State Capitals', 'The capital of Indiana', 'Indianapolis', 1))
+            INSERT INTO questions (game_id, value, daily_double, round, category, clue, response, correct_contestant)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+            ''', (1, 400, 'No', 'Jeopardy', 'State Capitals', 'The capital of Indiana', 'Indianapolis', 1))
 
         print('Connected:', cls.dbcon, "\n")
 
@@ -110,7 +110,7 @@ class DBConnectionTests(unittest.TestCase):
                         ''')
 
     def test_insert_question(self):
-        self.dbcon.insert_question(1, 2000, 'Double Jeopardy', 'Poetry', 'The man we always ask questions about',
+        self.dbcon.insert_question(1, 2000, 'No', 'Double Jeopardy', 'Poetry', 'The man we always ask questions about',
                                    'Henry David Thoreau', 3)
 
         captured_output = StringIO()
@@ -118,8 +118,8 @@ class DBConnectionTests(unittest.TestCase):
             self.dbcon.print_questions()
 
         self.assertEqual(captured_output.getvalue(),
-                         "(1, 1, 400, 'Jeopardy', 'State Capitals', 'The capital of Indiana', 'Indianapolis', 1)\n" +
-                         "(2, 1, 2000, 'Double Jeopardy', 'Poetry', 'The man we always ask questions about', " +
+                         "(1, 1, 400, False, 'Jeopardy', 'State Capitals', 'The capital of Indiana', 'Indianapolis', 1)\n" +
+                         "(2, 1, 2000, False, 'Double Jeopardy', 'Poetry', 'The man we always ask questions about', " +
                          "'Henry David Thoreau', 3)\n")
 
         self.dbcon.cursor.execute('''
@@ -160,7 +160,7 @@ class DBConnectionTests(unittest.TestCase):
             self.dbcon.print_questions()
 
         self.assertEqual(captured_output.getvalue(),
-                         "(1, 1, 400, 'Jeopardy', 'State Capitals', 'The capital of Indiana', 'Indianapolis', 1)\n")
+                         "(1, 1, 400, False, 'Jeopardy', 'State Capitals', 'The capital of Indiana', 'Indianapolis', 1)\n")
 
 
 if __name__ == '__main__':

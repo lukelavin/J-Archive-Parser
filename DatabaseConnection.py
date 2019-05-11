@@ -47,12 +47,12 @@ class DatabaseConnection:
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         ''', (season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3))
 
-    def insert_question(self, game_id, value, round, category, clue, response, correct_contestant):
+    def insert_question(self, game_id, value, daily_double, round, category, clue, response, correct_contestant):
         print('Inserting question')
         self.cursor.execute('''
-        INSERT INTO questions (game_id, value, round, category, clue, response, correct_contestant)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ''', (game_id, value, round, category, clue, response, correct_contestant))
+        INSERT INTO questions (game_id, value, daily_double, round, category, clue, response, correct_contestant)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (game_id, value, daily_double, round, category, clue, response, correct_contestant))
 
     def print_seasons(self):
         self.cursor.execute('SELECT * FROM seasons')
@@ -129,6 +129,7 @@ class DatabaseConnection:
           id serial PRIMARY KEY,
           game_id INT,
           value INT NOT NULL,
+          daily_double BOOLEAN NOT NULL,
           round VARCHAR NOT NULL,
           category VARCHAR NOT NULL,
           clue VARCHAR NOT NULL,
