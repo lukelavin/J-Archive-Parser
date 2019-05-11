@@ -4,9 +4,12 @@ import psycopg2
 class DatabaseConnection:
 
     def __init__(self, connect_args=None):
+        with open('password.txt') as f:
+            password = f.readline()
+
         try:
             if connect_args is None:
-                self.connection = psycopg2.connect('dbname=jeopardy user=postgres password=*************')
+                self.connection = psycopg2.connect('dbname=jeopardy user=postgres password=' + password)
             else:
                 self.connection = psycopg2.connect(connect_args)
             self.connection.autocommit = True

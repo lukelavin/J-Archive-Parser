@@ -6,7 +6,10 @@ class DBConnectionTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.dbcon = DatabaseConnection('dbname=test user=postgres password=*********')
+        with open('password.txt') as f:
+            password = f.readline()
+
+        cls.dbcon = DatabaseConnection('dbname=test user=postgres password=' + password)
         cls.dbcon.setup_database()
         print(cls.dbcon)
 
