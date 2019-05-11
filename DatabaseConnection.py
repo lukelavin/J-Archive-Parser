@@ -25,12 +25,14 @@ class DatabaseConnection:
             print("Error closing the connection." + '\n' + e.pgcode + '\n' + e.pgerror)
 
     def insert_season(self, name, start_date, end_date, total_games):
+        print('Inserting season')
         self.cursor.execute('''
         INSERT INTO seasons (season_name, start_date, end_date, total_games)
         VALUES (%s, %s, %s, %s);
         ''', (name, start_date, end_date, total_games))
 
     def insert_contestant(self, name, notes, games_played, total_winnings):
+        print('Inserting contestant')
         self.cursor.execute('''
         INSERT INTO contestants (name, notes, games_played, total_winnings)
         VALUES (%s, %s, %s, %s);
@@ -38,6 +40,7 @@ class DatabaseConnection:
 
     def insert_game(self, season_id, air_date, notes, contestant1, contestant2, contestant3,
                     winner, score1, score2, score3):
+        print('Inserting game')
         self.cursor.execute('''
         INSERT INTO 
         games (season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3)
@@ -45,9 +48,10 @@ class DatabaseConnection:
         ''', (season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3))
 
     def insert_question(self, game_id, value, round, category, clue, response, correct_contestant):
+        print('Inserting question')
         self.cursor.execute('''
         INSERT INTO questions (game_id, value, round, category, clue, response, correct_contestant)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         ''', (game_id, value, round, category, clue, response, correct_contestant))
 
     def print_seasons(self):
@@ -140,6 +144,3 @@ class DatabaseConnection:
         self.cursor.execute('DROP TABLE seasons CASCADE')
         self.cursor.execute('DROP TABLE contestants CASCADE')
         self.cursor.execute('DROP TABLE questions CASCADE')
-
-        self.cursor.close()
-        self.connection.close()
