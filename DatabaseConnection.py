@@ -38,45 +38,85 @@ class DatabaseConnection:
         VALUES (%s, %s, %s, %s);
         ''', (name, notes, games_played, total_winnings))
 
-    def insert_game(self, season_id, air_date, notes, contestant1, contestant2, contestant3,
+    def insert_game(self, episode_num, season_id, air_date, notes, contestant1, contestant2, contestant3,
                     winner, score1, score2, score3):
         print('Inserting game')
         self.cursor.execute('''
         INSERT INTO 
-        games (season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-        ''', (season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3))
+        games (episode_num, season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        ''', (episode_num, season_id, air_date, notes, contestant1, contestant2, contestant3, winner,
+              score1, score2, score3))
 
     def insert_question(self, game_id, value, daily_double, round, category, clue, response, correct_contestant):
-        print('Inserting question')
+        print('Inserting clue')
         self.cursor.execute('''
-        INSERT INTO questions (game_id, value, daily_double, round, category, clue, response, correct_contestant)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO clues (game_id, value, daily_double, round, category, clue, response, correct_contestant)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         ''', (game_id, value, daily_double, round, category, clue, response, correct_contestant))
 
     def print_seasons(self):
-        self.cursor.execute('SELECT * FROM seasons')
+        self.cursor.execute('SELECT * FROM seasons ORDER BY id;')
         seasons = self.cursor.fetchall()
         for season in seasons:
             print(season)
 
     def print_contestants(self):
-        self.cursor.execute('SELECT * FROM contestants')
+        self.cursor.execute('SELECT * FROM contestants ORDER BY id;')
         contestants = self.cursor.fetchall()
         for contestant in contestants:
             print(contestant)
 
     def print_games(self):
-        self.cursor.execute('SELECT * FROM games')
+        self.cursor.execute('SELECT * FROM games ORDER BY id;')
         games = self.cursor.fetchall()
         for game in games:
             print(game)
 
     def print_questions(self):
-        self.cursor.execute('SELECT * FROM questions')
+        self.cursor.execute('SELECT * FROM clues ORDER BY id;')
         questions = self.cursor.fetchall()
         for question in questions:
             print(question)
+
+    def update_contestant(self, name, notes=None,  games_played=None, total_winnings=None):
+        if games_played is not None:
+            self.cursor.execute('''
+            UPDATE contestants
+            SET games_played = (%s)
+            WHERE name = (%s);''', (games_played, name))
+
+        if notes is not None:
+            self.cursor.execute('''
+            UPDATE contestants
+            SET notes = (%s)
+            WHERE name = (%s);''', (notes, name))
+
+        if total_winnings is not None:
+            self.cursor.execute('''
+            UPDATE contestants
+            SET total_winnings = (%s)
+            WHERE name = (%s);''', (total_winnings, name))
+
+    def contestant_exists(self, name):
+        self.cursor.execute('''SELECT * FROM contestants WHERE name = (%s);''', (name,))
+        contestant = self.cursor.fetchone()
+        return contestant is not None
+
+    def get_contestant_games_played(self, name):
+        self.cursor.execute('''SELECT games_played FROM contestants WHERE name = (%s);''', (name,))
+        total_winnings = self.cursor.fetchone()
+        return total_winnings[0]
+
+    def get_contestant_winnings(self, name):
+        self.cursor.execute('''SELECT total_winnings FROM contestants WHERE name = (%s);''', (name,))
+        total_winnings = self.cursor.fetchone()
+        return total_winnings[0]
+
+    def get_contestant_id_from_name(self, name):
+        self.cursor.execute('''SELECT id FROM contestants WHERE name = (%s);''', (name,))
+        total_winnings = self.cursor.fetchone()
+        return total_winnings[0]
 
     def setup_database(self):
         # Seasons Table
@@ -95,7 +135,7 @@ class DatabaseConnection:
         CREATE TABLE contestants (
           id serial PRIMARY KEY,
           name VARCHAR NOT NULL,
-          notes VARCHAR NOT NULL,
+          notes VARCHAR,
           games_played integer NOT NULL,
           total_winnings integer
         );
@@ -105,6 +145,7 @@ class DatabaseConnection:
         self.cursor.execute('''
         CREATE TABLE games (
           id serial PRIMARY KEY,
+          episode_num INT UNIQUE,
           season_id INT,
           air_date DATE NOT NULL,
           notes VARCHAR,
@@ -125,7 +166,7 @@ class DatabaseConnection:
 
         # Questions Table
         self.cursor.execute('''
-        CREATE TABLE questions (
+        CREATE TABLE clues (
           id serial PRIMARY KEY,
           game_id INT,
           value INT NOT NULL,
@@ -144,4 +185,4 @@ class DatabaseConnection:
         self.cursor.execute('DROP TABLE games CASCADE')
         self.cursor.execute('DROP TABLE seasons CASCADE')
         self.cursor.execute('DROP TABLE contestants CASCADE')
-        self.cursor.execute('DROP TABLE questions CASCADE')
+        self.cursor.execute('DROP TABLE clues CASCADE')

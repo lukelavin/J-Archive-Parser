@@ -40,12 +40,12 @@ class DBConnectionTests(unittest.TestCase):
             ''', ('Joe Schmo', 'An accountant from San Diego, California', 1, 1000))
 
         cls.dbcon.cursor.execute('''
-            INSERT INTO games (season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-            ''', (1, '2013-08-24', 'Tournament of Champions Game 1', 1, 2, 3, 1, 3400, 1400, 1200))
+            INSERT INTO games (episode_num, season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            ''', (1, 1, '2013-08-24', 'Tournament of Champions Game 1', 1, 2, 3, 1, 3400, 1400, 1200))
 
         cls.dbcon.cursor.execute('''
-            INSERT INTO questions (game_id, value, daily_double, round, category, clue, response, correct_contestant)
+            INSERT INTO clues (game_id, value, daily_double, round, category, clue, response, correct_contestant)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
             ''', (1, 400, 'No', 'Jeopardy', 'State Capitals', 'The capital of Indiana', 'Indianapolis', 1))
 
@@ -91,16 +91,16 @@ class DBConnectionTests(unittest.TestCase):
                 ''')
 
     def test_insert_game(self):
-        self.dbcon.insert_game(1, '2014-01-01', 'New Year Special', 1, 2, 3, 3, 9400, 400, 14200)
+        self.dbcon.insert_game(2, 1, '2014-01-01', 'New Year Special', 1, 2, 3, 3, 9400, 400, 14200)
 
         captured_output = StringIO()
         with redirect_stdout(captured_output):
             self.dbcon.print_games()
 
         self.assertEqual(captured_output.getvalue(),
-                         "(1, 1, datetime.date(2013, 8, 24), 'Tournament of Champions Game 1', " +
+                         "(1, 1, 1, datetime.date(2013, 8, 24), 'Tournament of Champions Game 1', " +
                          "1, 2, 3, 1, 3400, 1400, 1200)\n" +
-                         "(2, 1, datetime.date(2014, 1, 1), 'New Year Special', " +
+                         "(2, 2, 1, datetime.date(2014, 1, 1), 'New Year Special', " +
                          "1, 2, 3, 3, 9400, 400, 14200)\n"
                          )
 
@@ -123,7 +123,7 @@ class DBConnectionTests(unittest.TestCase):
                          "'Henry David Thoreau', 3)\n")
 
         self.dbcon.cursor.execute('''
-                                DELETE FROM questions
+                                DELETE FROM clues
                                 WHERE id = 2;
                                 ''')
 
@@ -151,7 +151,7 @@ class DBConnectionTests(unittest.TestCase):
             self.dbcon.print_games()
 
         self.assertEqual(captured_output.getvalue(),
-                         "(1, 1, datetime.date(2013, 8, 24), 'Tournament of Champions Game 1', " +
+                         "(1, 1, 1, datetime.date(2013, 8, 24), 'Tournament of Champions Game 1', " +
                          "1, 2, 3, 1, 3400, 1400, 1200)\n")
 
     def test_print_questions(self):
@@ -161,6 +161,20 @@ class DBConnectionTests(unittest.TestCase):
 
         self.assertEqual(captured_output.getvalue(),
                          "(1, 1, 400, False, 'Jeopardy', 'State Capitals', 'The capital of Indiana', 'Indianapolis', 1)\n")
+
+    def test_update_contestant(self):
+        self.dbcon.update_contestant('John Smith', 'a nae nae', 100, 0)
+
+        captured_output = StringIO()
+        with redirect_stdout(captured_output):
+            self.dbcon.print_contestants()
+
+        self.assertEqual(captured_output.getvalue(),
+                         "(1, 'John Smith', 'a nae nae', 100, 0)\n" +
+                         "(2, 'Jane Doe', 'A software engineer from Atlanta, Georgia', 1, 2000)\n" +
+                         "(3, 'Joe Schmo', 'An accountant from San Diego, California', 1, 1000)\n")
+
+        self.dbcon.update_contestant('John Smith', 'A teacher from Akron, Ohio', 2, 19400)
 
 
 if __name__ == '__main__':
