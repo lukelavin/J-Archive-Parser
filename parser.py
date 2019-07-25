@@ -173,12 +173,27 @@ for i in range(len(season_links)):
         #    Clues
         # **********
 
+        rounds = soup.find_all('table', class_='round')
+
         # Jeopardy Round
-        soup.find_all('table')
+        # -------------
+        print('Parsing Jeopardy Round')
+        j = rounds[0]
+
+        # Categories
+        categories = j.find_all('td', class_='category_name')
+        for i in range(6):
+            categories[i] = categories[i].get_text()
+            print(categories[i])
+
+        clue_tables = list(map(lambda td: td.find_all('table')[0], j.find_all('td', class_='clue')))
+        for table in clue_tables:
+            print(table.prettify())
 
         # Double Jeopardy Round
-        soup.find_all('table')
+        pass
 
         # Final Jeopardy
+        pass
 
 dbcon.close()
