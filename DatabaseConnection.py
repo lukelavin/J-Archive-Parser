@@ -40,7 +40,7 @@ class DatabaseConnection:
 
     def insert_game(self, episode_num, season_id, air_date, notes, contestant1, contestant2, contestant3,
                     winner, score1, score2, score3):
-        print('Inserting game')
+        print(f'Inserting game {episode_num}')
         self.cursor.execute('''
         INSERT INTO
         games (episode_num, season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3)
@@ -48,12 +48,12 @@ class DatabaseConnection:
         ''', (episode_num, season_id, air_date, notes, contestant1, contestant2, contestant3, winner,
               score1, score2, score3))
 
-    def insert_question(self, game_id, value, daily_double, round, category, clue, response, correct_contestant):
-        print('Inserting clue')
+    def insert_question(self, game_id, value, daily_double, round, category, clue, response):
+        # print('Inserting clue')
         self.cursor.execute('''
-        INSERT INTO clues (game_id, value, daily_double, round, category, clue, response, correct_contestant)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-        ''', (game_id, value, daily_double, round, category, clue, response, correct_contestant))
+        INSERT INTO clues (game_id, value, daily_double, round, category, clue, response)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+        ''', (game_id, value, daily_double, round, category, clue, response))
 
     def print_seasons(self):
         self.cursor.execute('SELECT * FROM seasons ORDER BY id;')
@@ -118,6 +118,11 @@ class DatabaseConnection:
         total_winnings = self.cursor.fetchone()
         return total_winnings[0]
 
+    def get_game_from_episode_number(self, episode_number):
+        self.cursor.execute('''SELECT id FROM games WHERE episode_num = (%s);''', (episode_number,))
+        game_id = self.cursor.fetchone()
+        return game_id[0]
+
     def setup_database(self):
         # Seasons Table
         self.cursor.execute('''
@@ -175,9 +180,7 @@ class DatabaseConnection:
           category VARCHAR NOT NULL,
           clue VARCHAR NOT NULL,
           response VARCHAR NOT NULL,
-          correct_contestant INT,
-          FOREIGN KEY (game_id) REFERENCES games (id),
-          FOREIGN KEY (correct_contestant) REFERENCES contestants (id)
+          FOREIGN KEY (game_id) REFERENCES games (id)
         );
         ''')
 

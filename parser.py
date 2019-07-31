@@ -4,6 +4,16 @@ from DatabaseConnection import DatabaseConnection
 from time import sleep
 from random import randrange
 
+def find_right_answer(text: str) -> str:
+    CORRECT_FLAG = '<em class="correct_response">'
+    # print('Function found response at index ' + str(text.find(CORRECT_FLAG) + len(CORRECT_FLAG)))
+    response = text[text.find(CORRECT_FLAG) + len(CORRECT_FLAG):]
+    response = response[:response.find('</em>')]
+    if len(response) > 3 and response[0:3] == '<i>':
+        response = response[3:-3]
+    return response
+
+
 dbcon = DatabaseConnection()
 dbcon.delete_database()
 dbcon.setup_database()
@@ -55,7 +65,7 @@ sleep(randrange(1, 5))
 for i in range(len(season_links)):
     season_link = season_links[i]
     sleep(randrange(5, 15))
-    print(season_link)
+    # print(season_link)
     with request.urlopen('https://j-archive.com/' + season_link) as response:
         html = response.read()
     soup = BeautifulSoup(html, 'html.parser')
@@ -177,30 +187,78 @@ for i in range(len(season_links)):
 
         # Jeopardy Round
         # -------------
-        print('Parsing Jeopardy Round')
+        # print('Parsing Jeopardy Round')
         j = rounds[0]
 
         # Categories
-        print(f"Categories for game {episode_number}")
+        # print(f"Categories for game {episode_number}")
         categories = j.find_all('td', class_='category_name')
         for i in range(6):
             categories[i] = categories[i].get_text()
-            print(categories[i])
+            # print(categories[i])
 
         # Clue Texts
-        print(f"Clues for game {episode_number}")
+        # print(f"Clues for game {episode_number}")
         clue_texts = j.find_all('td', class_='clue_text')
         for clue_text in clue_texts:
-            full_clue = clue_text.parent.parent
             clue_id = clue_text['id']
-            print(f'Clue id: {clue_id}')
+            # print(f'Clue id: {clue_id}')
+
             col = clue_id[7:8]
             row = clue_id[len(clue_id) - 1:]
-            print(f'Category:{categories[int(col) - 1]}\nValue:{200 * int(row)}')
-            print(full_clue.prettify())
+            # print(f'Category:{categories[int(col) - 1]}\nValue:{200 * int(row)}')
+
+            # print(f'Clue: {clue_text.get_text()}')
+
+            full_clue = clue_text.parent.parent
+            #print(full_clue.prettify())
+
+            answer_and_info = full_clue.find_all('div')[0]['onmouseover']
+            correct_response = find_right_answer(answer_and_info)
+            # print(f'**PARSED RESPONSE** :: {correct_response}\n')
+
+            # def insert_question(self, game_id, value, daily_double, round, category, clue, response):
+            dbcon.insert_question(dbcon.get_game_from_episode_number(episode_number),
+                                    200 * int(row), False, 'J!',
+                                    categories[int(col) - 1], clue_text.get_text(),
+                                    correct_response)
 
         # Double Jeopardy Round
-        pass
+        # print('Parsing Double Jeopardy Round')
+        j = rounds[1]
+
+        # Categories
+        # print(f"Categories for game {episode_number}")
+        categories = j.find_all('td', class_='category_name')
+        for i in range(6):
+            categories[i] = categories[i].get_text()
+            # print(categories[i])
+
+        # Clue Texts
+        # print(f"Clues for game {episode_number}")
+        clue_texts = j.find_all('td', class_='clue_text')
+        for clue_text in clue_texts:
+            clue_id = clue_text['id']
+            # print(f'Clue id: {clue_id}')
+
+            col = clue_id[8:9]
+            row = clue_id[len(clue_id) - 1:]
+            # print(f'Category:{categories[int(col) - 1]}\nValue:{200 * int(row)}')
+
+            # print(f'Clue: {clue_text.get_text()}')
+
+            full_clue = clue_text.parent.parent
+            #print(full_clue.prettify())
+
+            answer_and_info = full_clue.find_all('div')[0]['onmouseover']
+            correct_response = find_right_answer(answer_and_info)
+            # print(f'**PARSED RESPONSE** :: {correct_response}\n')
+
+            # def insert_question(self, game_id, value, daily_double, round, category, clue, response):
+            dbcon.insert_question(dbcon.get_game_from_episode_number(episode_number),
+                                    400 * int(row), False, 'DJ!',
+                                    categories[int(col) - 1], clue_text.get_text(),
+                                    correct_response)
 
         # Final Jeopardy
         pass
