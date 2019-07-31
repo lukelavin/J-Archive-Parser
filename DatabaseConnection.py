@@ -9,7 +9,7 @@ class DatabaseConnection:
 
         try:
             if connect_args is None:
-                self.connection = psycopg2.connect('dbname=jeopardy user=postgres password=' + password)
+                self.connection = psycopg2.connect('dbname=jeopardy user=luke password=' + password)
             else:
                 self.connection = psycopg2.connect(connect_args)
             self.connection.autocommit = True
@@ -42,7 +42,7 @@ class DatabaseConnection:
                     winner, score1, score2, score3):
         print('Inserting game')
         self.cursor.execute('''
-        INSERT INTO 
+        INSERT INTO
         games (episode_num, season_id, air_date, notes, contestant1, contestant2, contestant3, winner, score1, score2, score3)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         ''', (episode_num, season_id, air_date, notes, contestant1, contestant2, contestant3, winner,

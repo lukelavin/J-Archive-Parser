@@ -96,7 +96,7 @@ for i in range(len(season_links)):
         print('\n\nParsing game page')
         with request.urlopen(game_link) as response:
             html = response.read()
-        soup = BeautifulSoup(html, 'lxml')
+        soup = BeautifulSoup(html, 'html.parser')
 
         if len(soup.find_all('h3')) < 5:
             print('**********************')
@@ -181,14 +181,23 @@ for i in range(len(season_links)):
         j = rounds[0]
 
         # Categories
+        print(f"Categories for game {episode_number}")
         categories = j.find_all('td', class_='category_name')
         for i in range(6):
             categories[i] = categories[i].get_text()
             print(categories[i])
 
-        clue_tables = list(map(lambda td: td.find_all('table')[0], j.find_all('td', class_='clue')))
-        for table in clue_tables:
-            print(table.prettify())
+        # Clue Texts
+        print(f"Clues for game {episode_number}")
+        clue_texts = j.find_all('td', class_='clue_text')
+        for clue_text in clue_texts:
+            full_clue = clue_text.parent.parent
+            clue_id = clue_text['id']
+            print(f'Clue id: {clue_id}')
+            col = clue_id[7:8]
+            row = clue_id[len(clue_id) - 1:]
+            print(f'Category:{categories[int(col) - 1]}\nValue:{200 * int(row)}')
+            print(full_clue.prettify())
 
         # Double Jeopardy Round
         pass
