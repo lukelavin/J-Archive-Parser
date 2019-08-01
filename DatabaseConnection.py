@@ -24,6 +24,13 @@ class DatabaseConnection:
         except psycopg2.Error as e:
             print("Error closing the connection." + '\n' + e.pgcode + '\n' + e.pgerror)
 
+    def insert_parsed_game(self, episode_num, game_link):
+        print('Inserting game into parsed list')
+        self.cursor.execute('''
+        INSERT INTO parsed_games(episode_num, game_link)
+        VALUES (%s, %s);
+        ''', (episode_num, game_link))
+
     def insert_season(self, name, start_date, end_date, total_games):
         print('Inserting season')
         self.cursor.execute('''
@@ -79,6 +86,11 @@ class DatabaseConnection:
         for question in questions:
             print(question)
 
+    def game_parsed(self, episode_num):
+        self.cursor.execute('SELECT * FROM parsed_games WHERE episode_num=(%s)', (episode_num, ))
+        episode_num_found = len(self.cursor.fetchall()) > 0
+        return episode_num_found
+
     def update_contestant(self, name, notes=None,  games_played=None, total_winnings=None):
         if games_played is not None:
             self.cursor.execute('''
@@ -124,6 +136,15 @@ class DatabaseConnection:
         return game_id[0]
 
     def setup_database(self):
+        # Parsed Games Table
+        self.cursor.execute('''
+        CREATE TABLE parsed_games (
+        id serial PRIMARY KEY,
+        episode_num integer,
+        game_link VARCHAR
+        );
+        ''')
+
         # Seasons Table
         self.cursor.execute('''
         CREATE TABLE seasons (
@@ -189,3 +210,4 @@ class DatabaseConnection:
         self.cursor.execute('DROP TABLE seasons CASCADE')
         self.cursor.execute('DROP TABLE contestants CASCADE')
         self.cursor.execute('DROP TABLE clues CASCADE')
+        self.cursor.execute('DROP TABLE parsed_games')
